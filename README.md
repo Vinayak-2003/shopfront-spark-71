@@ -1,73 +1,99 @@
-# Welcome to your Lovable project
+# E-commerce Shopfront
 
-## Project info
+A modern, responsive e-commerce frontend built with **React**, **TypeScript**, and **Vite**, styled with **Tailwind CSS** and **Shadcn UI**.
 
-**URL**: https://lovable.dev/projects/600aeb27-cf0a-4d29-9925-575e57a0e427
+## 🚀 Features
 
-## How can I edit this code?
+-   **Authentication**: Secure user login and registration.
+-   **Product Browsing**: Advanced search, filtering, and categorization.
+-   **Shopping Cart**: Real-time cart management.
+-   **Checkout**: Seamless order placement and address management.
+-   **Responsive Design**: Mobile-first approach ensuring a great experience on all devices.
+-   **Dark Mode**: Sleek dark mode support.
 
-There are several ways of editing your application.
+## 🛠️ Tech Stack
 
-**Use Lovable**
+-   **Frontend Framework**: [React](https://react.dev/)
+-   **Build Tool**: [Vite](https://vitejs.dev/)
+-   **Language**: [TypeScript](https://www.typescriptlang.org/)
+-   **Styling**: [Tailwind CSS](https://tailwindcss.com/)
+-   **UI Components**: [Shadcn UI](https://ui.shadcn.com/)
+-   **Icons**: [Lucide React](https://lucide.dev/)
+-   **State Management/Data Fetching**: [TanStack Query](https://tanstack.com/query/latest)
+-   **Routing**: [React Router](https://reactrouter.com/)
+-   **Notifications**: [Sonner](https://sonner.emilkowal.ski/)
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/600aeb27-cf0a-4d29-9925-575e57a0e427) and start prompting.
+## 📦 Deployment on Vercel
 
-Changes made via Lovable will be committed automatically to this repo.
+This project is optimized for deployment on [Vercel](https://vercel.com/).
 
-**Use your preferred IDE**
+### Prerequisites
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+1.  A Vercel account.
+2.  The backend API URL (deployed separately, e.g., on Render).
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### Steps
 
-Follow these steps:
+1.  **Push to GitHub**: Ensure your code is pushed to a GitHub repository.
+2.  **Import to Vercel**:
+    -   Go to your Vercel dashboard.
+    -   Click "Add New..." > "Project".
+    -   Import your GitHub repository.
+3.  **Configure Project**:
+    -   Framework Preset: **Vite**
+    -   Root Directory: `./` (default)
+4.  **Environment Variables**:
+    -   Add the following environment variable:
+        -   `VITE_API_BASE_URL`: Your backend API URL (e.g., `https://ecommerce-backend-i9yg.onrender.com`)
+5.  **Deploy**: Click "Deploy".
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+Vercel will build and deploy your application. You'll get a production URL (e.g., `https://your-project.vercel.app`).
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+## 🏃‍♂️ Local Development
 
-# Step 3: Install the necessary dependencies.
-npm i
+1.  **Clone the repository**:
+    ```bash
+    git clone <repository-url>
+    cd <repository-directory>
+    ```
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+2.  **Install dependencies**:
+    ```bash
+    npm install
+    ```
+
+3.  **Configure Environment**:
+    -   Create a `.env.local` file in the root directory.
+    -   Add your API URL:
+        ```env
+        VITE_API_BASE_URL=https://ecommerce-backend-i9yg.onrender.com
+        ```
+
+4.  **Run the dev server**:
+    ```bash
+    npm run dev
+    ```
+
+## 🏗️ Build for Production
+
+To create a production build locally:
+
+```bash
+npm run build
 ```
 
-**Edit a file directly in GitHub**
+The output will be in the `dist` directory.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## 📂 Project Structure
 
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/600aeb27-cf0a-4d29-9925-575e57a0e427) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+```
+src/
+├── components/   # Reusable UI components
+├── config/       # App configuration
+├── context/      # React Contexts
+├── hooks/        # Custom React hooks
+├── lib/          # Utilities and libraries
+├── pages/        # Page components (Routes)
+├── types/        # TypeScript interfaces
+└── utils/        # Helper functions
+```

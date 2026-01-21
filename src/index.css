@@ -41,8 +41,13 @@ All colors MUST be HSL.
     /* Premium gradients */
     --gradient-primary: linear-gradient(135deg, hsl(221 83% 53%) 0%, hsl(221 83% 63%) 100%);
     --gradient-accent: linear-gradient(135deg, hsl(142 76% 36%) 0%, hsl(142 76% 46%) 100%);
-    --gradient-hero: linear-gradient(135deg, hsl(221 83% 53% / 0.05) 0%, hsl(142 76% 36% / 0.05) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(221 83% 53% / 0.08) 0%, hsl(142 76% 36% / 0.08) 100%);
     --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(220 14% 99%) 100%);
+    
+    /* Glassmorphism */
+    --glass-border: 1px solid rgba(255, 255, 255, 0.2);
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
     
     /* Shadows */
     --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
@@ -119,4 +124,136 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Custom responsive utilities */
+@layer utilities {
+  /* Better mobile touch targets */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
+  
+  /* Improved mobile spacing */
+  .mobile-padding {
+    @apply px-4;
+  }
+  
+  /* Better card stacking on mobile */
+  .card-stack {
+    @apply space-y-4;
+  }
+  
+  /* Improved form spacing on mobile */
+  .form-stack > * {
+    @apply mb-4 last:mb-0;
+  }
+  
+  /* Better button sizing on mobile */
+  .btn-responsive {
+    @apply py-3 px-4 text-base;
+  }
+  
+  /* Improved grid spacing on mobile */
+  .grid-gap-mobile {
+    @apply gap-4;
+  }
+  
+  /* Better typography scaling on mobile */
+  .text-responsive {
+    @apply text-base leading-relaxed;
+  }
+  
+  .heading-responsive {
+    @apply text-2xl md:text-3xl;
+  }
+
+  /* Glassmorphism Utilities */
+  .glass-panel {
+    @apply bg-background/60 backdrop-blur-md border border-white/20 shadow-sm supports-[backdrop-filter]:bg-background/60;
+  }
+  
+  .glass-card {
+    @apply bg-white/80 backdrop-blur-sm border border-white/20 shadow-sm hover:shadow-md transition-all duration-300;
+  }
+}
+
+/* Responsive improvements for specific components */
+@media (max-width: 768px) {
+  /* Improve navbar spacing on mobile */
+  .navbar-mobile {
+    @apply h-14;
+  }
+  
+  /* Better product card layout on mobile */
+  .product-card-mobile {
+    @apply w-full;
+  }
+  
+  /* Improved form layout on mobile */
+  .form-mobile {
+    @apply space-y-4;
+  }
+  
+  /* Better modal/dialog spacing on mobile */
+  .dialog-mobile {
+    @apply p-4;
+  }
+  
+  /* Improved button sizing on mobile */
+  .button-mobile {
+    @apply h-12 text-base;
+  }
+  
+  /* Better badge sizing on mobile */
+  .badge-mobile {
+    @apply h-6 text-xs;
+  }
+}
+
+/* Fix for small screens */
+@media (max-width: 480px) {
+  /* Prevent text overflow on very small screens */
+  .text-nowrap-xs {
+    @apply truncate;
+  }
+  
+  /* Better padding on extra small screens */
+  .xs-padding {
+    @apply px-3 py-2;
+  }
+  
+  /* Smaller heading sizes on extra small screens */
+  .xs-heading {
+    @apply text-xl;
+  }
+}
+
+/* Smooth scrolling for anchor links */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Better focus styles for accessibility */
+.focus-ring {
+  @apply focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2;
+}
+
+/* Improved transition for interactive elements */
+.transition-all-fast {
+  @apply transition-all duration-150 ease-in-out;
+}
+
+/* Better loading skeleton animations */
+.skeleton-loading {
+  @apply animate-pulse bg-muted;
+}
+
+/* Improved hover effects */
+.hover-lift {
+  @apply transition-transform duration-200 hover:-translate-y-0.5;
+}
+
+/* Better shadow transitions */
+.shadow-transition {
+  @apply transition-shadow duration-200;
 }

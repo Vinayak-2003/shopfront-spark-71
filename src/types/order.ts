@@ -1,50 +1,70 @@
-// Order type definitions
+// Order type definitions matching backend API schema
 
-import { CartItem } from "@/contexts/CartContext";
+// Payment method enum from backend
+export type PaymentMethod = "COD" | "UPI" | "Wallet" | "Card";
 
-export interface ShippingAddress {
-  address: string;
-  city: string;
-  state?: string;
-  zip: string;
-  country?: string;
-}
-
-export interface PaymentMethod {
-  type: "credit_card" | "debit_card" | "paypal";
-  last4?: string;
-  brand?: string;
-}
-
-export interface Order {
-  id: string;
-  user_id: string;
-  items: CartItem[];
-  total: number;
-  subtotal: number;
-  tax?: number;
-  shipping?: number;
-  status: OrderStatus;
-  shipping_address: ShippingAddress;
-  payment_method: PaymentMethod;
-  created_at: string;
-  updated_at: string;
-  tracking_number?: string;
-}
-
+// Order status enum from backend
 export type OrderStatus = 
-  | "pending" 
-  | "processing" 
-  | "shipped" 
-  | "delivered" 
-  | "cancelled" 
-  | "refunded";
+  | "PENDING"
+  | "CONFIRMED"
+  | "PACKED"
+  | "OUT_FOR_DELIVERY"
+  | "DELIVERED"
+  | "CANCELLED"
+  | "RETURN_REQUESTED"
+  | "RETURNED"
+  | "DELAY";
 
 export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
-  pending: "Pending",
-  processing: "Processing",
-  shipped: "Shipped",
-  delivered: "Delivered",
-  cancelled: "Cancelled",
-  refunded: "Refunded",
+  PENDING: "Pending",
+  CONFIRMED: "Confirmed",
+  PACKED: "Packed",
+  OUT_FOR_DELIVERY: "Out for Delivery",
+  DELIVERED: "Delivered",
+  CANCELLED: "Cancelled",
+  RETURN_REQUESTED: "Return Requested",
+  RETURNED: "Returned",
+  DELAY: "Delayed",
 };
+
+// Order item when creating an order
+export interface OrderItemCreate {
+  product_id: string;  // UUID
+  quantity: number;
+}
+
+// Order item in response
+export interface OrderItemOut {
+  product_id: string;  // UUID
+  product_name: string;
+  price_at_purchase: number;
+  quantity: number;
+  total_price: number;
+}
+
+// Order creation schema
+export interface OrderCreate {
+  items: OrderItemCreate[];
+  payment_method?: PaymentMethod;  // Default: "UPI"
+}
+
+// Order output schema from backend
+export interface Order {
+  order_id: string;  // UUID
+  user_id: string;  // UUID
+  shipping_address_id: string;  // UUID
+  order_status: OrderStatus;
+  payment_method: PaymentMethod;
+  items?: OrderItemOut[];  // Optional because list view doesn't include items
+  total_items: number;
+  total_amount: number;
+  order_placed_datetime: string;  // ISO datetime
+  order_updated_datetime: string;  // ISO datetime
+}
+
+// Order update schema (for admin/seller)
+export interface OrderUpdate {
+  user_id: string;  // UUID
+  order_id: string;  // UUID
+  order_status: OrderStatus;
+}

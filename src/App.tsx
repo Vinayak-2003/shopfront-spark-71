@@ -5,6 +5,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { CartProvider } from "@/contexts/CartContext";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { WishlistProvider } from "@/contexts/WishlistContext";
+import { ReviewsProvider } from "@/contexts/ReviewsContext";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import Index from "./pages/Index";
 import ProductDetail from "./pages/ProductDetail";
@@ -12,7 +14,13 @@ import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import Auth from "./pages/Auth";
 import Account from "./pages/Account";
+import Orders from "./pages/Orders";
+import OrderTracking from "./pages/OrderTracking";
+import Wishlist from "./pages/Wishlist";
+import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
+import { ThemeProvider } from "./components/theme-provider";
+import Footer from "./components/Footer";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -27,26 +35,38 @@ const queryClient = new QueryClient({
 const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <AuthProvider>
-          <CartProvider>
-            <Toaster />
-            <Sonner position="top-right" />
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/product/:id" element={<ProductDetail />} />
-                <Route path="/cart" element={<Cart />} />
-                <Route path="/checkout" element={<Checkout />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/account" element={<Account />} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
+      <ThemeProvider defaultTheme="system" storageKey="shophub-theme">
+        <TooltipProvider>
+          <AuthProvider>
+            <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+              <CartProvider>
+                <WishlistProvider>
+                  <ReviewsProvider>
+                    <Toaster />
+                    <Sonner position="top-right" />
+                    <Routes>
+                      <Route path="/" element={<Index />} />
+                      <Route path="/product/:id" element={<ProductDetail />} />
+                      <Route path="/cart" element={<Cart />} />
+                      <Route path="/checkout" element={<Checkout />} />
+                      <Route path="/auth" element={<Auth />} />
+                      <Route path="/account" element={<Account />} />
+                      <Route path="/orders" element={<Orders />} />
+                      <Route path="/track-order/:orderId" element={<OrderTracking />} />
+                      <Route path="/track-order" element={<OrderTracking />} />
+                      <Route path="/wishlist" element={<Wishlist />} />
+                      <Route path="/admin" element={<AdminDashboard />} />
+                      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                    <Footer />
+                  </ReviewsProvider>
+                </WishlistProvider>
+              </CartProvider>
             </BrowserRouter>
-          </CartProvider>
-        </AuthProvider>
-      </TooltipProvider>
+          </AuthProvider>
+        </TooltipProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   </ErrorBoundary>
 );
