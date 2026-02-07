@@ -9,6 +9,19 @@ import { Separator } from "@/components/ui/separator";
 import Skeleton from "@/components/Skeleton";
 import { useEffect } from "react";
 
+// Helper to get currency symbol
+const getCurrencySymbol = (currency: string = "INR") => {
+  const symbols: Record<string, string> = {
+    INR: "₹",
+    USD: "$",
+    EURO: "€",
+    "POUND STERLING": "£",
+    YEN: "¥",
+    "RUSSIAN RUBLE": "₽",
+  };
+  return symbols[currency] || "₹";
+};
+
 export default function Cart() {
   const { items, removeItem, updateQuantity, total, redirectToLogin } = useCart();
   const { user, loading: authLoading } = useAuth();
@@ -29,7 +42,7 @@ export default function Cart() {
         <Navbar />
         <div className="container mx-auto px-4 py-8 mobile-padding">
           <Skeleton className="h-10 w-48 mb-8" />
-          
+
           <div className="grid lg:grid-cols-3 gap-8 grid-gap-mobile">
             <div className="lg:col-span-2 card-stack">
               {[...Array(3)].map((_, i) => (
@@ -128,8 +141,10 @@ export default function Cart() {
                     />
                     <div className="flex-1">
                       <h3 className="font-semibold text-lg mb-1 text-nowrap-xs">{item.name}</h3>
-                      <p className="text-accent font-bold mb-4">${item.price}</p>
-                      
+                      <p className="text-accent font-bold mb-4">
+                        {getCurrencySymbol(item.currency)}{item.price}
+                      </p>
+
                       <div className="flex items-center gap-4 flex-wrap">
                         <div className="flex items-center gap-2">
                           <Button
@@ -152,7 +167,7 @@ export default function Cart() {
                             <Plus className="h-4 w-4" />
                           </Button>
                         </div>
-                        
+
                         <Button
                           variant="ghost"
                           size="icon"
@@ -165,7 +180,7 @@ export default function Cart() {
                     </div>
                     <div className="text-right sm:text-right">
                       <p className="font-bold text-lg">
-                        ${(item.price * item.quantity).toFixed(2)}
+                        {getCurrencySymbol(item.currency)}{(item.price * item.quantity).toFixed(2)}
                       </p>
                     </div>
                   </div>
@@ -179,25 +194,25 @@ export default function Cart() {
               <CardContent className="p-6 space-y-4">
                 <h2 className="text-xl font-bold">Order Summary</h2>
                 <Separator />
-                
+
                 <div className="space-y-2">
                   <div className="flex justify-between text-muted-foreground">
                     <span>Subtotal</span>
-                    <span>${total.toFixed(2)}</span>
+                    <span>{getCurrencySymbol(items?.[0]?.currency)}{total.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-muted-foreground">
                     <span>Shipping</span>
                     <span>Free</span>
                   </div>
                 </div>
-                
+
                 <Separator />
-                
+
                 <div className="flex justify-between text-xl font-bold">
                   <span>Total</span>
-                  <span>${total.toFixed(2)}</span>
+                  <span>{getCurrencySymbol(items?.[0]?.currency)}{total.toFixed(2)}</span>
                 </div>
-                
+
                 <Button
                   variant="accent"
                   size="lg"
@@ -206,7 +221,7 @@ export default function Cart() {
                 >
                   Proceed to Checkout
                 </Button>
-                
+
                 <Button
                   variant="outline"
                   className="w-full btn-responsive"

@@ -14,6 +14,19 @@ import { MapPin, CreditCard, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
 
+// Helper to get currency symbol
+const getCurrencySymbol = (currency: string = "INR") => {
+  const symbols: Record<string, string> = {
+    INR: "₹",
+    USD: "$",
+    EURO: "€",
+    "POUND STERLING": "£",
+    YEN: "¥",
+    "RUSSIAN RUBLE": "₽",
+  };
+  return symbols[currency] || "₹";
+};
+
 export default function Checkout() {
   const { items, total, clearCart, redirectToLogin } = useCart();
   const { user, loading: authLoading } = useAuth();
@@ -185,7 +198,7 @@ export default function Checkout() {
                     disabled={loading || !selectedAddressId}
                   >
                     <Lock className="mr-2 h-4 w-4" />
-                    {loading ? "Processing..." : `Place Order - ₹${total.toFixed(2)}`}
+                    {loading ? "Processing..." : `Place Order - ${getCurrencySymbol(items?.[0]?.currency)}${total.toFixed(2)}`}
                   </Button>
 
                   <p className="text-xs text-center text-muted-foreground text-responsive">
@@ -208,7 +221,7 @@ export default function Checkout() {
                       <span className="text-muted-foreground">
                         {item.name} x{item.quantity}
                       </span>
-                      <span>${(item.price * item.quantity).toFixed(2)}</span>
+                      <span>{getCurrencySymbol(item.currency)}{(item.price * item.quantity).toFixed(2)}</span>
                     </div>
                   ))}
                 </div>
@@ -218,7 +231,7 @@ export default function Checkout() {
                 <div className="space-y-2">
                   <div className="flex justify-between text-muted-foreground text-responsive">
                     <span>Subtotal</span>
-                    <span>${total.toFixed(2)}</span>
+                    <span>{getCurrencySymbol(items?.[0]?.currency)}{total.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-muted-foreground text-responsive">
                     <span>Shipping</span>
@@ -230,7 +243,7 @@ export default function Checkout() {
 
                 <div className="flex justify-between text-xl font-bold">
                   <span>Total</span>
-                  <span>${total.toFixed(2)}</span>
+                  <span>{getCurrencySymbol(items?.[0]?.currency)}{total.toFixed(2)}</span>
                 </div>
               </CardContent>
             </Card>

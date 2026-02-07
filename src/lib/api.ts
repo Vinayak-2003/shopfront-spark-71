@@ -2,29 +2,154 @@
 // All API call functions matching backend OpenAPI specification
 
 import { API_CONFIG, getApiUrl, getHeaders, getFormHeaders } from "@/config/api";
+import { jwtDecode } from "jwt-decode";
 import { Product, ProductCreate, ProductUpdate, ProductFilter, Brand, BrandCreate } from "@/types/product";
 import { User, UserCreate, UserUpdate, LoginRequest, TokenSchema } from "@/types/user";
 import { Address, AddressCreate, AddressUpdate } from "@/types/address";
 import { Order, OrderCreate, OrderUpdate } from "@/types/order";
 import { CartItemCreate, CartItemUpdate, CartItemOut, CartItem } from "@/types/cart";
 
+// Token management (Memory Storage)
+let accessToken: string | null = null;
+
+export const setAccessToken = (token: string | null) => {
+  accessToken = token;
+};
+export const getAccessToken = () => accessToken; // derived for debugging if needed
+
+// Helper to check token expiry
+const isTokenExpiringSoon = (token: string): boolean => {
+  try {
+    const decoded: any = jwtDecode(token);
+    if (!decoded.exp) return true;
+    // Refresh if expiring in less than 1 minute
+    return decoded.exp < (Date.now() / 1000) + 60;
+  } catch (error) {
+    return true;
+  }
+};
+
+// Token refresh queue handling
+let isRefreshing = false;
+let failedQueue: Array<{ resolve: (token: string | null) => void; reject: (error: any) => void }> = [];
+
+const processQueue = (error: any, token: string | null = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
+// Refresh token function
+export const refreshAccessToken = async (): Promise<string | null> => {
+  if (isRefreshing) {
+    return new Promise((resolve, reject) => {
+      failedQueue.push({ resolve, reject });
+    });
+  }
+
+  isRefreshing = true;
+
+  try {
+    // Call refresh endpoint - strict "HttpOnly Cookie" flow means no headers/body needed
+    // Browser sends the cookie automatically
+    const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.AUTH_REFRESH), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include", // Required to send/receive HttpOnly cookies
+    });
+
+    if (!response.ok) {
+      throw new Error("Refresh failed");
+    }
+
+    const data = await response.json();
+    const newAccessToken = data.access_token;
+
+    setAccessToken(newAccessToken);
+    processQueue(null, newAccessToken);
+
+    return newAccessToken;
+  } catch (error) {
+    processQueue(error, null);
+    setAccessToken(null); // Clear invalid token
+    throw error;
+  } finally {
+    isRefreshing = false;
+  }
+};
+
 // Generic API request handler with error handling
 async function apiRequest<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const url = getApiUrl(endpoint);
+  let url = getApiUrl(endpoint);
+
+  // Interceptor Check: Is token expiring?
+  // Only check if we are making an authenticated request (implied by having a token)
+  // And we are NOT already trying to refresh (to avoid infinite loops)
+  if (accessToken && !url.includes(API_CONFIG.ENDPOINTS.AUTH_REFRESH) && isTokenExpiringSoon(accessToken)) {
+    try {
+      await refreshAccessToken();
+    } catch (error) {
+      console.warn("Token auto-refresh failed:", error);
+      // We proceed anyway, the call might fail with 401 and be caught below
+    }
+  }
+
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.TIMEOUT);
 
   try {
+    // Re-get headers to ensure latest token is used
+    // If options.headers exists, we merge carefully
+    let currentOptions = { ...options };
+    if (!currentOptions.headers && accessToken) {
+      currentOptions.headers = getHeaders(true);
+    }
 
-    const response = await fetch(url, {
-      ...options,
+    // Default to including credentials for all same-origin requests if needed, 
+    // or specifically for endpoints that need cookies. 
+    // For safety with CORS, sometimes 'include' is tricky, but for refresh/logout it's needed.
+    // We will add it specifically where needed or globally if we trust the backend CORS.
+    // Assuming backend handles CORS with credentials: true
+
+    let response = await fetch(url, {
+      ...currentOptions,
       signal: controller.signal,
     });
 
     clearTimeout(timeoutId);
+
+    // Response Interceptor: Handle 401
+    if (response.status === 401 && !url.includes(API_CONFIG.ENDPOINTS.AUTH_LOGIN) && !url.includes(API_CONFIG.ENDPOINTS.AUTH_REFRESH)) {
+      try {
+        // Keep strict: Only try refresh if we think it might help
+        const newToken = await refreshAccessToken();
+        if (newToken) {
+          // Retry original request with new token
+          const retryHeaders = getHeaders(true);
+          response = await fetch(url, {
+            ...currentOptions,
+            headers: {
+              ...currentOptions.headers,
+              ...retryHeaders
+            } as HeadersInit,
+            signal: new AbortController().signal // New signal
+          });
+        }
+      } catch (refreshError) {
+        // If refresh fails, we throw the original 401 error logic below
+        console.error("Retry after 401 failed:", refreshError);
+      }
+    }
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
@@ -33,7 +158,11 @@ async function apiRequest<T>(
       // Provide more descriptive error messages
       let errorMessage = `API Error: ${response.status} ${response.statusText}`;
       if (errorData.detail) {
-        errorMessage = errorData.detail;
+        if (Array.isArray(errorData.detail)) {
+          errorMessage = errorData.detail.map((err: any) => err.msg).join(", ");
+        } else {
+          errorMessage = errorData.detail;
+        }
       } else if (response.status === 401) {
         errorMessage = "Unauthorized access. Please log in again.";
       } else if (response.status === 403) {
@@ -85,13 +214,22 @@ export const productsApi = {
   // Get all products with pagination
   getAll: async (pageNo: number = 1, perPage: number = 100): Promise<ProductsResponse> => {
     const endpoint = `${API_CONFIG.ENDPOINTS.PRODUCTS}?page_no=${pageNo}&per_page=${perPage}`;
-    const response = await apiRequest<ProductsResponse>(endpoint, {
+    const response = await apiRequest<any>(endpoint, {
       headers: getHeaders(false),
     });
 
+    // Handle list response directly or wrapped object
+    let items: any[] = [];
+    if (Array.isArray(response)) {
+      items = response;
+    } else if (response.items) {
+      items = response.items;
+    }
+
     return {
-      ...response,
-      items: response.items.map(mapBackendProduct)
+      items: items.map(mapBackendProduct),
+      total: items.length, // Fallback if no total provided
+      ...response
     };
   },
 
@@ -171,9 +309,22 @@ export const brandsApi = {
   // Get all brands with pagination
   getAll: async (pageNo: number = 1, perPage: number = 100): Promise<BrandsResponse> => {
     const endpoint = `${API_CONFIG.ENDPOINTS.BRANDS}?page_no=${pageNo}&per_page=${perPage}`;
-    return apiRequest<BrandsResponse>(endpoint, {
+    const response = await apiRequest<any>(endpoint, {
       headers: getHeaders(false),
     });
+
+    // Standardization of response
+    let items: any[] = [];
+    if (Array.isArray(response)) {
+      items = response;
+    } else if (response.items) {
+      items = response.items;
+    }
+
+    return {
+      items: items,
+      total: items.length
+    };
   },
 
   // Add new brand (requires auth)
@@ -217,6 +368,17 @@ export const authApi = {
       method: "POST",
       headers: getFormHeaders(false),
       body: formData.toString(),
+      credentials: "include", // For setting the refresh token cookie
+    });
+  },
+
+  // User logout
+  logout: async (): Promise<void> => {
+    // We rely on the backend to clear the cookie
+    await apiRequest<void>(API_CONFIG.ENDPOINTS.AUTH_LOGOUT, {
+      method: "POST",
+      headers: getHeaders(true),
+      credentials: "include"
     });
   },
 

@@ -28,6 +28,7 @@ export interface CartItem {
   id: string;
   name: string;
   price: number;
+  currency?: string;
   image: string;
   quantity: number;
   cart_item_id?: string; // Optional for items from backend

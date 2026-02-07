@@ -35,15 +35,36 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       try {
         // Try to load cart from backend
         const response = await cartApi.getAll();
-        // Convert CartItemOut to CartItem
-        const cartItems = response.items.map(item => ({
-          id: item.product_id,
-          name: '', // Will be populated when product is fetched
-          price: item.product_amount,
-          image: '', // Will be populated when product is fetched
-          quantity: item.quantity,
-          cart_item_id: item.cart_item_id, // Store the cart_item_id for future operations
-        }));
+
+        // Backend cart items only have IDs, we need to fetch product details
+        const cartItemsPromises = response.items.map(async (item) => {
+          try {
+            const product = await import("@/lib/api").then(m => m.productsApi.getById(item.product_id));
+            return {
+              id: item.product_id,
+              name: product.product_name,
+              price: item.product_amount,
+              currency: product.currency,
+              image: product.image || "",
+              quantity: item.quantity,
+              cart_item_id: item.cart_item_id,
+            };
+          } catch (err) {
+            console.error(`Failed to fetch product details for ${item.product_id}`, err);
+            // Return a placeholder or null if product fetching fails
+            return {
+              id: item.product_id,
+              name: "Product Unavailable",
+              price: item.product_amount,
+              currency: "INR",
+              image: "",
+              quantity: item.quantity,
+              cart_item_id: item.cart_item_id,
+            };
+          }
+        });
+
+        const cartItems = await Promise.all(cartItemsPromises);
         setItems(cartItems);
         setIsInitialized(true);
       } catch (error) {
@@ -100,6 +121,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         id: cartItemOut.product_id,
         name: item.name,
         price: cartItemOut.product_amount,
+        currency: item.currency || "INR",
         image: item.image,
         quantity: cartItemOut.quantity,
         cart_item_id: cartItemOut.cart_item_id, // Store the cart_item_id
@@ -130,7 +152,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           );
         }
         toast.success("Added to cart");
-        return [...prev, { ...item, quantity: 1 }];
+        return [...prev, { ...item, quantity: 1, currency: item.currency || "INR" }];
       });
     }
   };

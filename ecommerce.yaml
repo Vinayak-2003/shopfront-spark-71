@@ -527,88 +527,6 @@
         }
       }
     },
-    "/api/v1/users/signup": {
-      "post": {
-        "tags": [
-          "Users"
-        ],
-        "summary": "New User Signup",
-        "operationId": "new_user_signup_api_v1_users_signup_post",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UserCreate"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/users/login": {
-      "post": {
-        "tags": [
-          "Users"
-        ],
-        "summary": "User Login",
-        "operationId": "user_login_api_v1_users_login_post",
-        "requestBody": {
-          "content": {
-            "application/x-www-form-urlencoded": {
-              "schema": {
-                "$ref": "#/components/schemas/Body_user_login_api_v1_users_login_post"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TokenSchema"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v1/users/me": {
       "get": {
         "tags": [
@@ -1465,6 +1383,130 @@
         }
       }
     },
+    "/api/v1/auth/signup": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "New User Signup",
+        "operationId": "new_user_signup_api_v1_auth_signup_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "User Login",
+        "operationId": "user_login_api_v1_auth_login_post",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_user_login_api_v1_auth_login_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/logout": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "User Logout",
+        "operationId": "user_logout_api_v1_auth_logout_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/refresh-token": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Refresh Access Token",
+        "operationId": "refresh_access_token_api_v1_auth_refresh_token_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenSchema"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/": {
       "get": {
         "tags": [
@@ -1823,7 +1865,7 @@
         "type": "object",
         "title": "AddressUpdate"
       },
-      "Body_user_login_api_v1_users_login_post": {
+      "Body_user_login_api_v1_auth_login_post": {
         "properties": {
           "grant_type": {
             "anyOf": [
@@ -1880,7 +1922,7 @@
           "username",
           "password"
         ],
-        "title": "Body_user_login_api_v1_users_login_post"
+        "title": "Body_user_login_api_v1_auth_login_post"
       },
       "BrandCreate": {
         "properties": {
@@ -2230,6 +2272,10 @@
           },
           "category": {
             "$ref": "#/components/schemas/Category"
+          },
+          "product_image": {
+            "type": "string",
+            "title": "Product Image"
           }
         },
         "type": "object",
@@ -2242,7 +2288,8 @@
           "available_quantity",
           "status",
           "brand_id",
-          "category"
+          "category",
+          "product_image"
         ],
         "title": "ProductCreate"
       },
@@ -2281,6 +2328,10 @@
           "category": {
             "$ref": "#/components/schemas/Category"
           },
+          "product_image": {
+            "type": "string",
+            "title": "Product Image"
+          },
           "product_id": {
             "type": "string",
             "format": "uuid4",
@@ -2308,6 +2359,7 @@
           "status",
           "brand_id",
           "category",
+          "product_image",
           "product_id",
           "updated_at",
           "created_at"
@@ -2431,10 +2483,6 @@
             "type": "string",
             "title": "Access Token"
           },
-          "refresh_token": {
-            "type": "string",
-            "title": "Refresh Token"
-          },
           "token_type": {
             "type": "string",
             "title": "Token Type",
@@ -2443,8 +2491,7 @@
         },
         "type": "object",
         "required": [
-          "access_token",
-          "refresh_token"
+          "access_token"
         ],
         "title": "TokenSchema"
       },
@@ -2457,6 +2504,8 @@
           },
           "user_contact": {
             "type": "string",
+            "maxLength": 15,
+            "minLength": 10,
             "pattern": "^\\+?[1-9]\\d{1,14}$",
             "title": "User Contact"
           },
@@ -2558,6 +2607,8 @@
             "anyOf": [
               {
                 "type": "string",
+                "maxLength": 15,
+                "minLength": 10,
                 "pattern": "^\\+?[1-9]\\d{1,14}$"
               },
               {
@@ -2579,6 +2630,9 @@
           }
         },
         "type": "object",
+        "required": [
+          "user_contact"
+        ],
         "title": "UserUpdate"
       },
       "ValidationError": {
@@ -2623,7 +2677,7 @@
             "scopes": {
 
             },
-            "tokenUrl": "/api/v1/users/login"
+            "tokenUrl": "/api/v1/auth/login"
           }
         }
       }
