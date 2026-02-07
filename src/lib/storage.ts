@@ -20,12 +20,20 @@ export const getProductImageUrl = (filename?: string | null, options?: ImageOpti
     // If it's already a full URL (e.g. from an external source or migration), return it
     if (filename.startsWith("http")) return filename;
 
-    // We enforce the 'public' route here.
-    // CRITICAL: The bucket in Supabase MUST be set to "Public" for this to work without tokens.
-    // console.log(`${SUPABASE_PROJECT_URL}/storage/v1/object/public/${SUPABASE_BUCKET}/${filename}`);
+    // Use Supabase Image Transformations if options are provided
+    if (options) {
+        const params = new URLSearchParams();
+        if (options.width) params.append('width', options.width.toString());
+        if (options.height) params.append('height', options.height.toString());
+        if (options.quality) params.append('quality', options.quality.toString());
+        if (options.format) params.append('format', options.format);
 
-    // TODO: Implement image transformations when Supabase Image Transformation is enabled
-    // Example: return `${SUPABASE_PROJECT_URL}/render/image/public/${SUPABASE_BUCKET}/${filename}?width=${options?.width || 0}...`;
+        // Use 'contain' to ensure the full image is visible without cropping
+        params.append('resize', 'contain');
+
+        // Use 'render/image' endpoint for transformations
+        return `${SUPABASE_PROJECT_URL}/storage/v1/render/image/public/${SUPABASE_BUCKET}/${filename}?${params.toString()}`;
+    }
 
     return `${SUPABASE_PROJECT_URL}/storage/v1/object/public/${SUPABASE_BUCKET}/${filename}`;
 };

@@ -73,12 +73,13 @@ export default function ProductCard({ product, isLoading }: ProductCardProps) {
   return (
     <Card className="group overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 shadow-sm border-border/50 product-card-mobile">
       <Link to={`/product/${product.product_id}`}>
-        <div className="aspect-square overflow-hidden bg-muted relative">
+        <div className="aspect-[3/4] overflow-hidden bg-muted relative">
           <img
             src={getProductImageUrl(product.image, { width: 400, quality: 80 })}
             alt={product.product_name}
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-            loading="lazy"
+            loading="eager"
+            decoding="async"
             onError={(e) => {
               e.currentTarget.src = "/placeholder-product.svg";
             }}

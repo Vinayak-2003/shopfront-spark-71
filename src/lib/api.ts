@@ -14,8 +14,13 @@ let accessToken: string | null = null;
 
 export const setAccessToken = (token: string | null) => {
   accessToken = token;
+  if (token) {
+    localStorage.setItem("access_token", token);
+  } else {
+    localStorage.removeItem("access_token");
+  }
 };
-export const getAccessToken = () => accessToken; // derived for debugging if needed
+export const getAccessToken = () => accessToken || localStorage.getItem("access_token"); // fallback to storage
 
 // Helper to check token expiry
 const isTokenExpiringSoon = (token: string): boolean => {
@@ -117,12 +122,10 @@ async function apiRequest<T>(
 
     // Default to including credentials for all same-origin requests if needed, 
     // or specifically for endpoints that need cookies. 
-    // For safety with CORS, sometimes 'include' is tricky, but for refresh/logout it's needed.
-    // We will add it specifically where needed or globally if we trust the backend CORS.
-    // Assuming backend handles CORS with credentials: true
-
+    // For cross-origin backend (onrender), we MUST send credentials for the cookie to work.
     let response = await fetch(url, {
       ...currentOptions,
+      credentials: "include", // FORCE credentials for all requests
       signal: controller.signal,
     });
 
@@ -142,6 +145,7 @@ async function apiRequest<T>(
               ...currentOptions.headers,
               ...retryHeaders
             } as HeadersInit,
+            credentials: "include", // Ensure retry also has credentials
             signal: new AbortController().signal // New signal
           });
         }
@@ -196,7 +200,8 @@ async function apiRequest<T>(
 const mapBackendProduct = (data: any): Product => {
   return {
     ...data,
-    image: data.product_image || data.image || ""
+    // Robust mapping for image field to handle various naming conventions
+    image: data.product_image || data.image || data.imageUrl || data.image_url || data.productImage || ""
   };
 };
 
@@ -212,7 +217,7 @@ interface ProductsResponse {
 
 export const productsApi = {
   // Get all products with pagination
-  getAll: async (pageNo: number = 1, perPage: number = 100): Promise<ProductsResponse> => {
+  getAll: async (pageNo: number = 1, perPage: number = 50): Promise<ProductsResponse> => {
     const endpoint = `${API_CONFIG.ENDPOINTS.PRODUCTS}?page_no=${pageNo}&per_page=${perPage}`;
     const response = await apiRequest<any>(endpoint, {
       headers: getHeaders(false),
@@ -227,9 +232,9 @@ export const productsApi = {
     }
 
     return {
+      ...response,
       items: items.map(mapBackendProduct),
       total: items.length, // Fallback if no total provided
-      ...response
     };
   },
 
@@ -307,7 +312,7 @@ interface BrandsResponse {
 
 export const brandsApi = {
   // Get all brands with pagination
-  getAll: async (pageNo: number = 1, perPage: number = 100): Promise<BrandsResponse> => {
+  getAll: async (pageNo: number = 1, perPage: number = 50): Promise<BrandsResponse> => {
     const endpoint = `${API_CONFIG.ENDPOINTS.BRANDS}?page_no=${pageNo}&per_page=${perPage}`;
     const response = await apiRequest<any>(endpoint, {
       headers: getHeaders(false),
@@ -434,11 +439,31 @@ interface CartResponse {
 
 export const cartApi = {
   // Get user's cart
-  getAll: async (pageNo: number = 1, perPage: number = 100): Promise<CartResponse> => {
+  getAll: async (pageNo: number = 1, perPage: number = 50): Promise<CartResponse> => {
     const endpoint = `${API_CONFIG.ENDPOINTS.CART_GET_ALL}?page_no=${pageNo}&per_page=${perPage}`;
-    return apiRequest<CartResponse>(endpoint, {
+    const response = await apiRequest<any>(endpoint, {
       headers: getHeaders(true),
     });
+
+    // Normalize response
+    let items: CartItemOut[] = [];
+
+    if (Array.isArray(response)) {
+      items = response;
+    } else if (response.cart_items) {
+      items = response.cart_items;
+    } else if (response.items) {
+      items = response.items;
+    } else if (response.data) {
+      items = response.data;
+    }
+
+    return {
+      items,
+      total: response.total_cart_items || items.length,
+      page: response.current_page || pageNo,
+      per_page: response.per_page || perPage
+    };
   },
 
   // Add item to cart

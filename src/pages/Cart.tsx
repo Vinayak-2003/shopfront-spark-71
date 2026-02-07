@@ -8,6 +8,7 @@ import { Minus, Plus, Trash2, ShoppingBag } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import Skeleton from "@/components/Skeleton";
 import { useEffect } from "react";
+import { getProductImageUrl } from "@/lib/storage";
 
 // Helper to get currency symbol
 const getCurrencySymbol = (currency: string = "INR") => {
@@ -135,9 +136,12 @@ export default function Cart() {
                 <CardContent className="p-6">
                   <div className="flex gap-4 flex-col sm:flex-row">
                     <img
-                      src={item.image}
+                      src={getProductImageUrl(item.image, { width: 100, quality: 80 })}
                       alt={item.name}
-                      className="w-24 h-24 object-cover rounded"
+                      className="w-24 h-24 object-contain rounded"
+                      onError={(e) => {
+                        e.currentTarget.src = "/placeholder-product.svg";
+                      }}
                     />
                     <div className="flex-1">
                       <h3 className="font-semibold text-lg mb-1 text-nowrap-xs">{item.name}</h3>

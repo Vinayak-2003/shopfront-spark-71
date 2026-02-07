@@ -68,7 +68,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         setItems(cartItems);
         setIsInitialized(true);
       } catch (error) {
-        console.warn("Failed to load cart from backend, using local storage:", error);
+        console.error("Failed to load cart from backend:", error);
+        console.warn("Falling back to local storage due to error");
         // Fall back to local storage if backend fails
         const saved = localStorage.getItem("cart");
         if (saved) {

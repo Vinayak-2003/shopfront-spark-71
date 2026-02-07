@@ -21,6 +21,11 @@ import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
 import { ThemeProvider } from "./components/theme-provider";
 import Footer from "./components/Footer";
+import Contact from "./pages/Contact";
+import FAQ from "./pages/FAQ";
+import Shipping from "./pages/Shipping";
+import Returns from "./pages/Returns";
+import Products from "./pages/Products";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -56,6 +61,16 @@ const App = () => (
                       <Route path="/track-order" element={<OrderTracking />} />
                       <Route path="/wishlist" element={<Wishlist />} />
                       <Route path="/admin" element={<AdminDashboard />} />
+
+                      {/* Footer Pages */}
+                      <Route path="/contact" element={<Contact />} />
+                      <Route path="/faq" element={<FAQ />} />
+                      <Route path="/shipping" element={<Shipping />} />
+                      <Route path="/returns" element={<Returns />} />
+
+                      {/* Product Catalog */}
+                      <Route path="/products" element={<Products />} />
+
                       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                       <Route path="*" element={<NotFound />} />
                     </Routes>

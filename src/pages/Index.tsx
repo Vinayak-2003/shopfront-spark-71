@@ -278,7 +278,7 @@ export default function Index() {
                   max={1000}
                   step={10}
                   value={priceRange}
-                  onValueChange={setPriceRange}
+                  onValueChange={(value) => setPriceRange(value as [number, number])}
                   className="mt-2"
                 />
               </div>

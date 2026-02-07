@@ -182,7 +182,7 @@ export default function ProductDetail() {
         </Button>
 
         <div className="grid md:grid-cols-1 lg:grid-cols-2 gap-12 items-start grid-gap-mobile">
-          <div className="aspect-square overflow-hidden rounded-lg bg-muted">
+          <div className="aspect-[3/4] overflow-hidden rounded-lg bg-muted">
             <img
               src={getProductImageUrl(product.image, { width: 800, quality: 90 })}
               alt={product.product_name}
