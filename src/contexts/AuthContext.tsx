@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { User, TokenSchema } from "@/types/user";
-import { authApi } from "@/lib/api";
+import { authApi, setAccessToken as setApiAccessToken, refreshAccessToken } from "@/lib/api";
 import { toast } from "sonner";
 
 interface AuthContextType {
@@ -20,43 +20,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Load user from localStorage on mount
+  // Init session on mount - try to refresh/get user if cookie exists
   useEffect(() => {
-    const loadUser = async () => {
+    const initSession = async () => {
       try {
-        const token = localStorage.getItem("access_token");
+        // Try to get new access token via refresh (cookie)
+        // This will verify if we have a valid session
+        const token = await refreshAccessToken();
         if (token) {
+          // We don't need to call setApiAccessToken here because refreshAccessToken does it internally
           setAccessToken(token);
-          // Fetch current user from backend
           const userData = await authApi.getCurrentUser();
           setUser(userData);
         }
       } catch (error) {
-        console.error("Failed to load user:", error);
-        // Clear invalid token
-        localStorage.removeItem("access_token");
-        localStorage.removeItem("refresh_token");
+        console.log("No active session or session expired");
+        // No action needed, user remains guest
       } finally {
         setLoading(false);
       }
     };
 
-    loadUser();
+    initSession();
   }, []);
 
   const login = async (email: string, password: string) => {
     try {
       const tokens = await authApi.login(email, password);
-      
-      // Store tokens
-      localStorage.setItem("access_token", tokens.access_token);
-      localStorage.setItem("refresh_token", tokens.refresh_token);
+
+      // Store access token in memory both in Context and API module
       setAccessToken(tokens.access_token);
+      setApiAccessToken(tokens.access_token);
 
       // Fetch user data
       const userData = await authApi.getCurrentUser();
       setUser(userData);
-      
+
       toast.success("Logged in successfully");
     } catch (error) {
       console.error("Login error:", error);
@@ -73,7 +72,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         password,
         user_contact: contact,
       });
-      
+
       toast.success("Account created successfully! Please log in.");
     } catch (error) {
       console.error("Signup error:", error);
@@ -83,12 +82,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
-    setAccessToken(null);
-    setUser(null);
-    toast.success("Logged out successfully");
+  const logout = async () => {
+    try {
+      // Call backend logout to clear cookie
+      await authApi.logout();
+    } catch (error) {
+      console.error("Logout failed", error);
+    } finally {
+      // Clear memory even if backend fails
+      setApiAccessToken(null);
+      setAccessToken(null);
+      setUser(null);
+      toast.success("Logged out successfully");
+    }
   };
 
   const refreshUser = async () => {
@@ -97,8 +103,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(userData);
     } catch (error) {
       console.error("Failed to refresh user:", error);
-      const errorMessage = error instanceof Error ? error.message : "Session expired. Please log in again.";
-      toast.error(errorMessage);
       logout();
     }
   };

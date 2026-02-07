@@ -44,7 +44,6 @@ export interface LoginRequest {
 // Token response from login
 export interface TokenSchema {
   access_token: string;
-  refresh_token: string;
   token_type?: string;  // Default: "Bearer"
 }
 

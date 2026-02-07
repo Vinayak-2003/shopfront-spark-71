@@ -7,7 +7,14 @@ const SUPABASE_PROJECT_URL = "https://kssjqicfkigdlpdhsfqq.supabase.co";
 // Bucket name derived from user's link
 const SUPABASE_BUCKET = "product_images";
 
-export const getProductImageUrl = (filename?: string | null): string => {
+interface ImageOptions {
+    width?: number;
+    height?: number;
+    quality?: number;
+    format?: string;
+}
+
+export const getProductImageUrl = (filename?: string | null, options?: ImageOptions): string => {
     if (!filename) return "/placeholder-product.svg";
 
     // If it's already a full URL (e.g. from an external source or migration), return it
@@ -15,6 +22,10 @@ export const getProductImageUrl = (filename?: string | null): string => {
 
     // We enforce the 'public' route here.
     // CRITICAL: The bucket in Supabase MUST be set to "Public" for this to work without tokens.
-    console.log(`${SUPABASE_PROJECT_URL}/storage/v1/object/public/${SUPABASE_BUCKET}/${filename}`);
+    // console.log(`${SUPABASE_PROJECT_URL}/storage/v1/object/public/${SUPABASE_BUCKET}/${filename}`);
+
+    // TODO: Implement image transformations when Supabase Image Transformation is enabled
+    // Example: return `${SUPABASE_PROJECT_URL}/render/image/public/${SUPABASE_BUCKET}/${filename}?width=${options?.width || 0}...`;
+
     return `${SUPABASE_PROJECT_URL}/storage/v1/object/public/${SUPABASE_BUCKET}/${filename}`;
 };
