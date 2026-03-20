@@ -78,8 +78,9 @@ export default function ProductCard({ product, isLoading }: ProductCardProps) {
             src={getProductImageUrl(product.image, { width: 400, quality: 80 })}
             alt={product.product_name}
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-            loading="eager"
+            loading="lazy"
             decoding="async"
+            fetchPriority="low"
             onError={(e) => {
               e.currentTarget.src = "/placeholder-product.svg";
             }}
